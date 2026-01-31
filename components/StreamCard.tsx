@@ -34,6 +34,7 @@ export function StreamCard({ id, url, isMuted, className, onMouseDown, onMouseUp
     const playerRef = useRef<any>(null);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
         setVideoID(getYouTubeID(url));
     }, [url]);
