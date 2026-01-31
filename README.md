@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NewsGrid (CCTV-Style Monitor)
 
-## Getting Started
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Status](https://img.shields.io/badge/status-development-orange.svg)
 
-First, run the development server:
+**NewsGrid** is a professional "Vibe Coding" public web app designed to function as a high-density news monitoring dashboard. Inspired by Cyberpunk aesthetics and Bloomberg Terminals, it allows users to monitor multiple YouTube news streams simultaneously in a customizable, draggable grid layout.
+
+## 🚀 Features
+
+- **Multi-Stream Monitoring**: Add unlimited YouTube live streams or videos.
+- **CCTV Grid Layout**: Draggable and resizable video panels using `react-grid-layout`.
+- **Cyberpunk Aesthetic**: Dark mode by default, high contrast, information-dense UI.
+- **Audio Control**: Global mute/unmute and per-stream volume controls.
+- **Persistence**: Layouts and active streams are saved individually using local storage.
+- **Shareable Setups**: (Planned) Sync active video IDs to URL parameters for sharing.
+
+## 🛠 Tech Stack
+
+- **Framework**: [Next.js 14+](https://nextjs.org/) (App Router, TypeScript)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **UI Components**: [shadcn/ui](https://ui.shadcn.com/) (Radix UI)
+- **Grid Engine**: [react-grid-layout](https://github.com/react-grid-layout/react-grid-layout)
+- **Video Player**: [react-player](https://github.com/cookpete/react-player)
+- **State Management**: [zustand](https://github.com/pmndrs/zustand)
+- **Icons**: [Lucide React](https://lucide.dev/)
+
+## 📦 Installation
+
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/yourusername/newsgrid.git
+    cd newsgrid
+    ```
+
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
+
+3.  **Run the development server:**
+    ```bash
+    npm run dev
+    ```
+
+4.  **Open the app:**
+    Visit `http://localhost:3000` in your browser.
+
+## 📂 Project Structure
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+├── app/                  # Next.js App Router pages
+├── components/           # React components
+│   ├── ui/               # shadcn/ui primitives
+│   ├── StreamCard.tsx    # Video player card component
+│   ├── MonitorGrid.tsx   # Draggable grid layout
+│   └── ControlPanel.tsx  # Global controls (add stream, mute all)
+├── lib/                  # Utilities (clsx, tailwind-merge)
+├── store/                # Zustand state management
+│   └── useMonitorStore.ts
+└── public/               # Static assets
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🤝 Contributing
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1.  Fork the project
+2.  Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3.  Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4.  Push to the branch (`git push origin feature/AmazingFeature`)
+5.  Open a Pull Request
 
-## Learn More
+## 📄 License
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is open source and available under the [MIT License](LICENSE).
