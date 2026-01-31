@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Plus, Volume2, VolumeX, Trash2, LayoutGrid, Monitor } from 'lucide-react';
+import { Plus, Volume2, VolumeX, LayoutGrid, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useMonitorStore } from '@/store/useMonitorStore';
@@ -9,7 +9,9 @@ import { cn } from '@/lib/utils';
 
 export function ControlPanel() {
     const [inputUrl, setInputUrl] = useState('');
-    const { addStream, streams, toggleGlobalMute, isGlobalMuted, resetLayout } = useMonitorStore();
+    const { addStream, toggleGlobalMute, isGlobalMuted, resetLayout, workspaces, activeWorkspaceId } = useMonitorStore();
+
+    const activeStreams = workspaces.find(w => w.id === activeWorkspaceId)?.streams || [];
 
     const handleAddStream = (e: React.FormEvent) => {
         e.preventDefault();
@@ -29,7 +31,7 @@ export function ControlPanel() {
 
             <form onSubmit={handleAddStream} className="flex-1 flex gap-2">
                 <Input
-                    disabled={streams.length >= 16}
+                    disabled={activeStreams.length >= 16}
                     value={inputUrl}
                     onChange={(e) => setInputUrl(e.target.value)}
                     placeholder="Paste YouTube Stream URL..."
