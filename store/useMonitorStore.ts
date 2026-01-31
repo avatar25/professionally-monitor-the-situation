@@ -35,13 +35,25 @@ interface MonitorState {
     resetLayout: () => void;
 }
 
+const DEFAULT_NEWS_STREAMS: Stream[] = [
+    { id: 'news-1', url: 'https://www.youtube.com/watch?v=vfszY1JYbMc&pp=ygURbGl2ZSBuZXdzIHN0cmVhbXM%3D', isMuted: true }, // Sky News
+    { id: 'news-2', url: 'https://www.youtube.com/watch?v=YDvsBbKfLPA&pp=ygURbGl2ZSBuZXdzIHN0cmVhbXM%3D', isMuted: true }, // ABC News
+    { id: 'news-3', url: 'https://www.youtube.com/watch?v=9NyxcX3rhQs', isMuted: true }, // Live News
+];
+
+const DEFAULT_WORKSPACES: Workspace[] = [
+    {
+        id: 'news-preset',
+        name: 'News',
+        streams: DEFAULT_NEWS_STREAMS
+    }
+];
+
 export const useMonitorStore = create<MonitorState>()(
     persist(
         (set) => ({
-            workspaces: [
-                { id: 'default', name: 'Main', streams: [] }
-            ],
-            activeWorkspaceId: 'default',
+            workspaces: DEFAULT_WORKSPACES,
+            activeWorkspaceId: 'news-preset',
             isGlobalMuted: true,
 
             // Workspace Actions
@@ -140,20 +152,36 @@ export const useMonitorStore = create<MonitorState>()(
         }),
         {
             name: 'monitor-storage',
-            version: 1,
+            version: 2,
             migrate: (persistedState: any, version) => {
-                if (version === 0) {
-                    // Migrate old 'streams' to default workspace
+                if (version === 0 || version === 1) {
+                    // Forcefully prepend the News Preset
+                    // Even if they have data, we want "News" to be the first tab and active
+
+                    const existingWorkspaces = persistedState.workspaces || [];
+                    // Check if a workspace named 'News' likely exists effectively
+                    // but simplest is just to prepend our authoritative list
+
+                    // Filter out any previous 'default' if it was empty, maybe?
+                    // Let's just keep their data but put ours first.
+
+                    // If migration from v0 (original list of streams)
+                    let migratedWorkspaces = existingWorkspaces;
+                    if (version === 0 && persistedState.streams) {
+                        migratedWorkspaces = [{
+                            id: 'old-data',
+                            name: 'My Workspace',
+                            streams: persistedState.streams
+                        }];
+                    }
+
                     return {
                         workspaces: [
-                            {
-                                id: 'default',
-                                name: 'Main',
-                                streams: persistedState.streams || []
-                            }
+                            ...DEFAULT_WORKSPACES,
+                            ...migratedWorkspaces
                         ],
-                        activeWorkspaceId: 'default',
-                        isGlobalMuted: persistedState.isGlobalMuted ?? true
+                        activeWorkspaceId: 'news-preset', // Focus the preset
+                        isGlobalMuted: true
                     };
                 }
                 return persistedState;
