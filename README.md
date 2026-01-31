@@ -1,7 +1,7 @@
 # Monitoring the Situation
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Status](https://img.shields.io/badge/status-development-orange.svg)
+![Status](https://img.shields.io/badge/status-deployed-success.svg)
 
 **Monitoring the Situation** is a professional "Vibe Coding" public web app designed for high-density information monitoring. Inspired by Cyberpunk aesthetics and financial terminals, it allows users to organize and view multiple YouTube streams across different workspaces.
 
