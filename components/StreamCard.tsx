@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import YouTube, { YouTubeProps } from 'react-youtube';
+import React, { useEffect, useMemo, useState } from 'react';
+import ReactPlayer from 'react-player';
 import { X, Volume2, VolumeX, Move, AlertCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { useMonitorStore } from '@/store/useMonitorStore';
@@ -19,57 +19,36 @@ interface StreamProps {
     width?: number;
 }
 
-// Helper to extract YouTube ID
-function getYouTubeID(url: string): string | null {
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-    const match = url.match(regExp);
-    return (match && match[2].length === 11) ? match[2] : null;
+// Derive per-provider config (mainly Twitch needs a parent host)
+function buildPlayerConfig(hostname: string) {
+    return {
+        youtube: {
+            playerVars: { modestbranding: 1, rel: 0, playsinline: 1 },
+        },
+        twitch: {
+            options: { parent: [hostname || 'localhost'], autoplay: true, muted: true },
+        },
+        file: {
+            attributes: { controlsList: 'nodownload', crossOrigin: 'anonymous' },
+        },
+    };
 }
 
 export function StreamCard({ id, url, isMuted, className, onMouseDown, onMouseUp, onTouchEnd, style, ...props }: StreamProps) {
     const { removeStream, toggleMute } = useMonitorStore();
     const [mounted, setMounted] = useState(false);
     const [isHovering, setIsHovering] = useState(false);
-    const [videoID, setVideoID] = useState<string | null>(null);
-    const playerRef = useRef<any>(null);
+    const [hostname, setHostname] = useState('localhost');
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
-        setVideoID(getYouTubeID(url));
-    }, [url]);
-
-    // Sync mute state with player
-    useEffect(() => {
-        if (playerRef.current) {
-            if (isMuted) {
-                playerRef.current.mute();
-            } else {
-                playerRef.current.unMute();
-            }
+        if (typeof window !== 'undefined') {
+            setHostname(window.location.hostname);
         }
-    }, [isMuted]);
+    }, []);
 
-    const onReady = (event: any) => {
-        playerRef.current = event.target;
-        if (isMuted) {
-            event.target.mute();
-        }
-        // Attempt playback
-        event.target.playVideo();
-    };
-
-    const opts: YouTubeProps['opts'] = {
-        height: '100%',
-        width: '100%',
-        playerVars: {
-            autoplay: 1,
-            controls: 1, // Show controls so user can interact
-            modestbranding: 1,
-            playsinline: 1,
-            mute: 1, // Force mute for autoplay
-        },
-    };
+    const canPlay = useMemo(() => ReactPlayer.canPlay(url), [url]);
+    const playerConfig = useMemo(() => buildPlayerConfig(hostname), [hostname]);
 
     if (!mounted) return <Card className="h-full bg-zinc-900 animate-pulse" />;
 
@@ -114,21 +93,23 @@ export function StreamCard({ id, url, isMuted, className, onMouseDown, onMouseUp
 
             {/* Video Player */}
             <div className="flex-1 w-full h-full relative pointer-events-auto bg-black">
-                {videoID ? (
-                    <YouTube
-                        videoId={videoID}
-                        opts={opts}
-                        onReady={onReady}
-                        className="w-full h-full"
-                        iframeClassName="w-full h-full"
+                {canPlay ? (
+                    <ReactPlayer
+                        url={url}
+                        playing
+                        muted={isMuted}
+                        controls
+                        width="100%"
+                        height="100%"
+                        config={playerConfig}
+                        playsinline
                     />
                 ) : (
                     <div className="flex items-center justify-center h-full text-zinc-500 gap-2">
                         <AlertCircle size={20} />
-                        <span>Invalid Video ID</span>
+                        <span>Unsupported or invalid stream</span>
                     </div>
                 )}
-
             </div>
         </Card>
     );
