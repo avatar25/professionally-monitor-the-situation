@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Responsive, type Layout } from 'react-grid-layout';
 import { useMonitorStore } from '@/store/useMonitorStore';
 import { StreamCard } from './StreamCard';
+import { GRID_BREAKPOINTS, GRID_COLS, GRID_MARGIN, GRID_ROW_HEIGHT } from '@/lib/autoFitLayout';
 
 // Add styles for react-grid-layout
 import 'react-grid-layout/css/styles.css';
@@ -85,15 +86,15 @@ export function MonitorGrid({ workspaceId }: { workspaceId: string }) {
             <ResponsiveGridLayout
                 className="layout"
                 layouts={{ lg: layout }}
-                breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-                cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-                rowHeight={100}
+                breakpoints={GRID_BREAKPOINTS}
+                cols={GRID_COLS}
+                rowHeight={GRID_ROW_HEIGHT}
                 draggableHandle=".drag-handle"
-                onLayoutChange={(currentLayout: Layout[]) => {
+                onLayoutChange={(currentLayout: Layout) => {
                     // Only update if this is the active grid (though simple prop passing handles this mostly)
                     updateLayout(currentLayout);
                 }}
-                margin={[16, 16]}
+                margin={GRID_MARGIN}
                 isDraggable={true}
                 isResizable={true}
             >

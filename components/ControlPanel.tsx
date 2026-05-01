@@ -1,15 +1,32 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Plus, Volume2, VolumeX, LayoutGrid, Monitor } from 'lucide-react';
+import { Plus, Volume2, VolumeX, LayoutGrid, Monitor, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useMonitorStore } from '@/store/useMonitorStore';
 import { cn } from '@/lib/utils';
+import {
+    CONTROL_PANEL_CLEARANCE,
+    getGridColsForWidth,
+    GRID_EDGE_PADDING,
+    GRID_MARGIN,
+    GRID_ROW_HEIGHT,
+    SIDEBAR_WIDTH,
+    TOP_BAR_HEIGHT
+} from '@/lib/autoFitLayout';
 
 export function ControlPanel() {
     const [inputUrl, setInputUrl] = useState('');
-    const { addStream, toggleGlobalMute, isGlobalMuted, resetLayout, workspaces, activeWorkspaceId } = useMonitorStore();
+    const {
+        addStream,
+        toggleGlobalMute,
+        isGlobalMuted,
+        resetLayout,
+        fitLayoutToScreen,
+        workspaces,
+        activeWorkspaceId
+    } = useMonitorStore();
 
     const activeStreams = workspaces.find(w => w.id === activeWorkspaceId)?.streams || [];
 
@@ -18,6 +35,22 @@ export function ControlPanel() {
         if (!inputUrl.trim()) return;
         addStream(inputUrl);
         setInputUrl('');
+    };
+
+    const handleFitLayoutToScreen = () => {
+        const gridWidth = Math.max(window.innerWidth - SIDEBAR_WIDTH - GRID_EDGE_PADDING * 2, 1);
+        const gridHeight = Math.max(
+            window.innerHeight - TOP_BAR_HEIGHT - GRID_EDGE_PADDING * 2 - CONTROL_PANEL_CLEARANCE,
+            GRID_ROW_HEIGHT
+        );
+
+        fitLayoutToScreen({
+            width: gridWidth,
+            height: gridHeight,
+            cols: getGridColsForWidth(gridWidth),
+            rowHeight: GRID_ROW_HEIGHT,
+            margin: GRID_MARGIN
+        });
     };
 
     return (
@@ -57,6 +90,17 @@ export function ControlPanel() {
                     title="Global Mute Toggle"
                 >
                     {isGlobalMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                </Button>
+
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleFitLayoutToScreen}
+                    disabled={activeStreams.length === 0}
+                    className="text-zinc-400 hover:text-white hover:bg-zinc-800"
+                    title="Fit Videos to Screen"
+                >
+                    <Maximize2 size={18} />
                 </Button>
 
                 <Button

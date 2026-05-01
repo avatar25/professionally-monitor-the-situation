@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import YouTube, { YouTubeProps } from 'react-youtube';
+import YouTube, { type YouTubeEvent, type YouTubePlayer, type YouTubeProps } from 'react-youtube';
 import { X, Volume2, VolumeX, Move, AlertCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { useMonitorStore } from '@/store/useMonitorStore';
@@ -31,7 +31,7 @@ export function StreamCard({ id, url, isMuted, className, onMouseDown, onMouseUp
     const [mounted, setMounted] = useState(false);
     const [isHovering, setIsHovering] = useState(false);
     const [videoID, setVideoID] = useState<string | null>(null);
-    const playerRef = useRef<any>(null);
+    const playerRef = useRef<YouTubePlayer | null>(null);
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -50,7 +50,7 @@ export function StreamCard({ id, url, isMuted, className, onMouseDown, onMouseUp
         }
     }, [isMuted]);
 
-    const onReady = (event: any) => {
+    const onReady = (event: YouTubeEvent) => {
         playerRef.current = event.target;
         if (isMuted) {
             event.target.mute();

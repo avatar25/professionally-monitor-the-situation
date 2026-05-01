@@ -1,12 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Layout } from 'react-grid-layout';
+import type { Layout, LayoutItem } from 'react-grid-layout';
+import { createAutoFitLayout, type AutoFitMetrics } from '@/lib/autoFitLayout';
 
 export interface Stream {
     id: string;
     url: string;
     isMuted: boolean;
-    layout?: Layout;
+    layout?: LayoutItem;
 }
 
 export interface Workspace {
@@ -31,8 +32,9 @@ interface MonitorState {
     removeStream: (id: string) => void;
     toggleMute: (id: string) => void;
     toggleGlobalMute: () => void;
-    updateLayout: (layouts: Layout[]) => void;
+    updateLayout: (layouts: Layout) => void;
     resetLayout: () => void;
+    fitLayoutToScreen: (metrics: AutoFitMetrics) => void;
 }
 
 const DEFAULT_NEWS_STREAMS: Stream[] = [
@@ -48,6 +50,14 @@ const DEFAULT_WORKSPACES: Workspace[] = [
         streams: DEFAULT_NEWS_STREAMS
     }
 ];
+
+type PersistedMonitorState = Partial<Pick<MonitorState, 'workspaces' | 'activeWorkspaceId' | 'isGlobalMuted'>> & {
+    streams?: Stream[];
+};
+
+function isPersistedMonitorState(value: unknown): value is PersistedMonitorState {
+    return typeof value === 'object' && value !== null;
+}
 
 export const useMonitorStore = create<MonitorState>()(
     persist(
@@ -127,12 +137,11 @@ export const useMonitorStore = create<MonitorState>()(
                 };
             }),
 
-            updateLayout: (layouts: Layout[]) => set((state) => ({
+            updateLayout: (layouts: Layout) => set((state) => ({
                 workspaces: state.workspaces.map(w => {
                     if (w.id === state.activeWorkspaceId) {
                         const updatedStreams = w.streams.map(stream => {
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            const layout = layouts.find((l: any) => l.i === stream.id);
+                            const layout = layouts.find(l => l.i === stream.id);
                             return layout ? { ...stream, layout } : stream;
                         });
                         return { ...w, streams: updatedStreams };
@@ -149,12 +158,36 @@ export const useMonitorStore = create<MonitorState>()(
                     return w;
                 })
             })),
+
+            fitLayoutToScreen: (metrics: AutoFitMetrics) => set((state) => ({
+                workspaces: state.workspaces.map(w => {
+                    if (w.id === state.activeWorkspaceId) {
+                        const fittedLayout = createAutoFitLayout(w.streams.map(stream => stream.id), metrics);
+                        return {
+                            ...w,
+                            streams: w.streams.map(stream => {
+                                const layout = fittedLayout.find(item => item.i === stream.id);
+                                return layout ? { ...stream, layout } : stream;
+                            })
+                        };
+                    }
+                    return w;
+                })
+            })),
         }),
         {
             name: 'monitor-storage',
             version: 2,
-            migrate: (persistedState: any, version) => {
+            migrate: (persistedState: unknown, version) => {
                 if (version === 0 || version === 1) {
+                    if (!isPersistedMonitorState(persistedState)) {
+                        return {
+                            workspaces: DEFAULT_WORKSPACES,
+                            activeWorkspaceId: 'news-preset',
+                            isGlobalMuted: true
+                        };
+                    }
+
                     // Forcefully prepend the News Preset
                     // Even if they have data, we want "News" to be the first tab and active
 
