@@ -28,7 +28,11 @@ function distributeUnits(total: number, buckets: number) {
 }
 
 function getRowsForHeight(height: number, rowHeight: number, marginY: number) {
-    return Math.max(1, Math.floor((height + marginY) / (rowHeight + marginY)));
+    const rows = Math.max(1, Math.floor((height + marginY) / (rowHeight + marginY)));
+    const usedHeight = rows * rowHeight + (rows - 1) * marginY;
+    const leftoverHeight = height - usedHeight;
+
+    return leftoverHeight > rowHeight * 0.75 ? rows + 1 : rows;
 }
 
 function getRowCounts(itemCount: number, rowCount: number) {

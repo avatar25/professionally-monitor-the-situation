@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Plus, Volume2, VolumeX, LayoutGrid, Monitor, Maximize2 } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Plus, Volume2, VolumeX, LayoutGrid, Monitor, Maximize2, Fullscreen, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useMonitorStore } from '@/store/useMonitorStore';
@@ -18,6 +18,8 @@ import {
 
 export function ControlPanel() {
     const [inputUrl, setInputUrl] = useState('');
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const controlPanelRef = useRef<HTMLDivElement>(null);
     const {
         addStream,
         toggleGlobalMute,
@@ -30,6 +32,17 @@ export function ControlPanel() {
 
     const activeStreams = workspaces.find(w => w.id === activeWorkspaceId)?.streams || [];
 
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(Boolean(document.fullscreenElement));
+        };
+
+        handleFullscreenChange();
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+
+        return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    }, []);
+
     const handleAddStream = (e: React.FormEvent) => {
         e.preventDefault();
         if (!inputUrl.trim()) return;
@@ -38,9 +51,15 @@ export function ControlPanel() {
     };
 
     const handleFitLayoutToScreen = () => {
-        const gridWidth = Math.max(window.innerWidth - SIDEBAR_WIDTH - GRID_EDGE_PADDING * 2, 1);
+        const layoutElement = document.querySelector<HTMLElement>('.react-grid-layout');
+        const layoutRect = layoutElement?.getBoundingClientRect();
+        const controlPanelTop = controlPanelRef.current?.getBoundingClientRect().top
+            ?? window.innerHeight - CONTROL_PANEL_CLEARANCE;
+        const gridWidth = Math.max(layoutRect?.width ?? window.innerWidth - SIDEBAR_WIDTH - GRID_EDGE_PADDING * 2, 1);
         const gridHeight = Math.max(
-            window.innerHeight - TOP_BAR_HEIGHT - GRID_EDGE_PADDING * 2 - CONTROL_PANEL_CLEARANCE,
+            layoutRect
+                ? controlPanelTop - layoutRect.top - GRID_MARGIN[1]
+                : window.innerHeight - TOP_BAR_HEIGHT - GRID_EDGE_PADDING * 2 - CONTROL_PANEL_CLEARANCE,
             GRID_ROW_HEIGHT
         );
 
@@ -53,8 +72,21 @@ export function ControlPanel() {
         });
     };
 
+    const handleToggleFullscreen = async () => {
+        try {
+            if (document.fullscreenElement) {
+                await document.exitFullscreen();
+                return;
+            }
+
+            await document.documentElement.requestFullscreen();
+        } catch {
+            // Some embedded browsers block fullscreen permission even from a user click.
+        }
+    };
+
     return (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl bg-zinc-900/90 backdrop-blur-md border border-zinc-800 rounded-xl p-3 shadow-2xl z-50 flex gap-4 items-center ring-1 ring-white/10">
+        <div ref={controlPanelRef} className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl bg-zinc-900/90 backdrop-blur-md border border-zinc-800 rounded-xl p-3 shadow-2xl z-50 flex gap-4 items-center ring-1 ring-white/10">
 
             {/* Brand Icon */}
             <div className="hidden sm:flex items-center gap-2 px-2 border-r border-zinc-700/50 mr-2">
@@ -101,6 +133,16 @@ export function ControlPanel() {
                     title="Fit Videos to Screen"
                 >
                     <Maximize2 size={18} />
+                </Button>
+
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleToggleFullscreen}
+                    className={cn("hover:bg-zinc-800", isFullscreen ? "text-cyan-400" : "text-zinc-400 hover:text-white")}
+                    title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                >
+                    {isFullscreen ? <Minimize2 size={18} /> : <Fullscreen size={18} />}
                 </Button>
 
                 <Button
